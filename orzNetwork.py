@@ -1,7 +1,13 @@
 from pwn import *
 import json
+import time
+from queue import Queue
+
+start = time.time()
+print("started at {:.3f}".format(start))
 
 r = remote('chall.ctf.bamboofox.tw', 10369)#, level = 'debug')
+print("done in {:.2f}s".format(time.time()-start))
 
 r.recvline()
 line = r.recvline()
@@ -9,6 +15,9 @@ line = r.recvline()
 prefix = line[7:23].decode()
 
 print('starting proof of work')
+
+start = time.time()
+print("started at {:.3f}".format(start))
 
 import hashlib
 difficulty = 20
@@ -32,6 +41,7 @@ r.sendline(str(i))
 r.sendline()
 
 print('proof of work complete')
+print("done in {:.2f}s".format(time.time()-start))
 
 cnt = int(r.recvline().decode().split()[6])
 
@@ -61,6 +71,9 @@ def recvstr() -> str:
     return r.recvline().decode().strip()
 
 print("{} sets\nreceiving data".format(cnt))
+start = time.time()
+print("started at {:.3f}".format(start))
+
 son = []
 #this is actual data
 temp1 = comp_number(recvstr().split(':')[1])
@@ -77,12 +90,70 @@ son.append({
 for _ in range(cnt-1):
     son.append(edge_to_dict())
 print('sets received')
+print("done in {:.2f}s".format(time.time()-start))
 
-print('writing to file')
-f = open('orzNetwork.out','w')
+print('writing sets to file')
+start = time.time()
+print("started at {:.3f}".format(start))
+f = open('orzNetworkSets.out','w')
 f.write('\n'.join(map(json.dumps, son)))
 f.close()
-print('file done')
+print("done in {:.2f}s".format(time.time()-start))
+
+print('linking graph')
+start = time.time()
+print("started at {:.3f}".format(start))
+graph = [[] for j in range(421)]
+
+for node in son:
+    data = {
+        'mod': node['mod'],
+        'base': node['base'],
+        'apub': node['apub'],
+        'bpub': node['bpub']
+    }
+    graph[node['acomp']].append([node['bcomp'],data])
+    graph[node['bcomp']].append([node['acomp'],data])
+
+vis = [False for j in range(421)]
+vis[0] = True
+vis[1] = True
+
+next = Queue()
+next.put(1)
+prev = [None for j in range(421)]
+
+while not next.empty():
+    n = next.get()
+    # print(graph[n][0])
+    # print(graph[n][0][0])
+    # print(graph[n][0][1])
+    for links in graph[n]:
+        link = links[0]
+        data = links[1]
+        if not vis[link]:
+            vis[link] = True
+            prev[link] = data
+            next.put(link)
+    break
+
+print("done in {:.2f}s".format(time.time()-start))
+
+print('writing links to file')
+start = time.time()
+print("started at {:.3f}".format(start))
+f = open('orzNetworkLinks.out','w')
+f.write('\n'.join(map(lambda x: ','.join(map(lambda y: str(y[0]), x)),graph)))
+f.close()
+print("done in {:.2f}s".format(time.time()-start))
+
+print('writing graph to file')
+start = time.time()
+print("started at {:.3f}".format(start))
+f = open('orzNetworkGraph.out','w')
+f.write('\n'.join(map(json.dumps, prev)))
+f.close()
+print("done in {:.2f}s".format(time.time()-start))
 
 """
 Secure connection established between computer #195 (Alice) and computer #246 (Bob).
