@@ -31,8 +31,8 @@ r.sendline()
 r.recvline()
 
 #this is actual data
-print(r.recvline().decode().split(':')[1:])
-print(r.recvline())
+print(r.recvline().decode().split(':')[1].strip())
+print(r.recvline().decode().strip())
 
 """
 Secure connection established between computer #195 (Alice) and computer #246 (Bob).
