@@ -76,12 +76,13 @@ son.append({
 
 for _ in range(cnt-1):
     son.append(edge_to_dict())
+print('sets received')
 
-print('sets received\nwriting to file')
-
+print('writing to file')
 f = open('orzNetwork.out','w')
 f.write('\n'.join(map(json.dumps, son)))
 f.close()
+print('file done')
 
 """
 Secure connection established between computer #195 (Alice) and computer #246 (Bob).
